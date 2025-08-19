@@ -1,0 +1,177 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Vista Administrativa - Dani Coin</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            padding: 20px;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        form {
+            margin-bottom: 20px;
+            background: #fff;
+            padding: 15px;
+            border: 1px solid #ccc;
+        }
+        form input, form select, form button {
+            padding: 8px;
+            margin: 5px;
+        }
+        .filters {
+            margin-bottom: 20px;
+        }
+        .filters select, .filters input {
+            padding: 5px;
+            margin-right: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background: #ddd;
+        }
+        .action-btn {
+            padding: 4px 8px;
+            margin: 2px;
+            cursor: pointer;
+        }
+        .edit-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .delete-btn {
+            background-color: #f44336;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Vista Administrativa - Dani Coin</h1>
+
+    <h2>Registrar nueva Dani Coin</h2>
+    <form id="coinForm">
+        <input type="text" id="studentName" placeholder="Nombre del estudiante" required>
+        <select id="studentCourse" required>
+            <option value="">Selecciona curso</option>
+            <option value="Logística Empresarial">Logística Empresarial</option>
+            <option value="Analista Programador">Analista Programador</option>
+            <option value="Gestión de Empresas">Gestión de Empresas</option>
+        </select>
+        <input type="date" id="coinDate" required>
+        <input type="number" id="coinValue" placeholder="Décimas" min="0" step="0.1" required>
+        <button type="submit">Guardar</button>
+    </form>
+
+    <div class="filters">
+        <label for="courseFilter">Filtrar por curso:</label>
+        <select id="courseFilter">
+            <option value="">Todos</option>
+            <option value="Logística Empresarial">Logística Empresarial</option>
+            <option value="Analista Programador">Analista Programador</option>
+            <option value="Gestión de Empresas">Gestión de Empresas</option>
+        </select>
+        <label for="dateFilter">Filtrar por fecha:</label>
+        <input type="date" id="dateFilter">
+        <button onclick="applyFilters()">Aplicar filtros</button>
+    </div>
+
+    <table id="coinTable">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Curso</th>
+                <th>Fecha</th>
+                <th>Décimas</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script>
+        let coins = JSON.parse(localStorage.getItem("daniCoins") || "[]");
+
+        document.getElementById("coinForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+
+            const nombre = document.getElementById("studentName").value.trim();
+            const curso = document.getElementById("studentCourse").value;
+            const fecha = document.getElementById("coinDate").value;
+            const decimas = document.getElementById("coinValue").value;
+
+            if (nombre && curso && fecha && decimas) {
+                coins.push({ nombre, curso, fecha, decimas });
+                localStorage.setItem("daniCoins", JSON.stringify(coins));
+                applyFilters();
+                this.reset();
+            } else {
+                alert("Por favor completa todos los campos.");
+            }
+        });
+
+        function renderTable(data) {
+            const tbody = document.querySelector("#coinTable tbody");
+            tbody.innerHTML = "";
+            data.forEach((coin, index) => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${coin.nombre}</td>
+                    <td>${coin.curso}</td>
+                    <td>${coin.fecha}</td>
+                    <td>${coin.decimas}</td>
+                    <td>
+                        <button class="action-btn edit-btn" onclick="editCoin(${index})">Editar</button>
+                        <button class="action-btn delete-btn" onclick="deleteCoin(${index})">Eliminar</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function applyFilters() {
+            const course = document.getElementById("courseFilter").value;
+            const date = document.getElementById("dateFilter").value;
+            let filtered = coins;
+            if (course) {
+                filtered = filtered.filter(c => c.curso === course);
+            }
+            if (date) {
+                filtered = filtered.filter(c => c.fecha === date);
+            }
+            renderTable(filtered);
+        }
+
+        function editCoin(index) {
+            const newName = prompt("Editar nombre del estudiante:", coins[index].nombre);
+            if (newName !== null) {
+                coins[index].nombre = newName;
+                localStorage.setItem("daniCoins", JSON.stringify(coins));
+                applyFilters();
+            }
+        }
+
+        function deleteCoin(index) {
+            if (confirm("¿Estás seguro de eliminar esta moneda?")) {
+                coins.splice(index, 1);
+                localStorage.setItem("daniCoins", JSON.stringify(coins));
+                applyFilters();
+            }
+        }
+
+        renderTable(coins);
+    </script>
+</body>
+</html>
